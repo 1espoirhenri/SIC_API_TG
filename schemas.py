@@ -1,9 +1,8 @@
 # schemas.py
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional, List
 from datetime import datetime
 
-# === Schemas cho Pi ===
 class PiBase(BaseModel):
     IDPi: str
     DDNS: str
@@ -17,7 +16,6 @@ class Pi(PiBase):
     class Config:
         from_attributes = True
 
-# === Schemas cho Bệnh nhân ===
 class BenhNhanBase(BaseModel):
     MaBenhNhan: str
     HoVaTen: str
@@ -27,13 +25,10 @@ class BenhNhanBase(BaseModel):
 class BenhNhan(BenhNhanBase):
     class Config:
         from_attributes = True
+        
+class BenhNhanUpdate(BaseModel):
+    HoVaTen: str
 
-# === Schema cho tra cứu chi tiết (kết hợp Pi và Bệnh nhân) ===
-class PatientLookupResult(BenhNhanBase):
-    DDNS: str
-    NguoiSoHuu: Optional[str] = None
-
-# === Schema cho đồng bộ chỉ số (vital sync) --- BỔ SUNG LẠI --- ===
 class VitalSync(BaseModel):
     id_pi: str
     ma_benh_nhan: str
@@ -41,8 +36,8 @@ class VitalSync(BaseModel):
     nhip_tim: int
     spo2: int
 
-# === Schema cho chỉ số (để lưu vào DB) --- BỔ SUNG LẠI --- ===
-class ChiSoCreate(BaseModel):
-    NhietDo: float
-    NhipTim: int
-    SpO2: int
+class PatientVitalsResponse(BenhNhanBase):
+    nhietdo: Optional[float] = None
+    nhip_tim: Optional[int] = None
+    spo2: Optional[int] = None
+    thoi_gian_do: Optional[datetime] = None
