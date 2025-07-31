@@ -33,3 +33,11 @@ class Pi(PiBase):
 # Schema trả về khi tra cứu, chứa cả thông tin Pi và DDNS
 class PatientLookupResult(BenhNhan):
     pi: Pi
+    
+# --- THÊM CLASS CÒN THIẾU VÀO ĐÂY ---
+class VitalSync(BaseModel):
+    id_pi: str
+    ma_benh_nhan: str
+    nhietdo: float
+    nhip_tim: int
+    spo2: int
