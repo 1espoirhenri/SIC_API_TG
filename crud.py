@@ -1,6 +1,11 @@
-# crud.py
 from sqlalchemy.orm import Session
 import models, schemas
+
+def get_pi_by_id(db: Session, pi_id: str):
+    return db.query(models.Pi).filter(models.Pi.IDPi == pi_id).first()
+
+def get_all_pis(db: Session):
+    return db.query(models.Pi).all()
 
 def create_pi(db: Session, pi: schemas.PiCreate):
     db_pi = models.Pi(**pi.model_dump())
@@ -9,14 +14,6 @@ def create_pi(db: Session, pi: schemas.PiCreate):
     db.refresh(db_pi)
     return db_pi
 
-# === CRUD cho Pi ===
-def get_pi_by_id(db: Session, pi_id: str):
-    return db.query(models.Pi).filter(models.Pi.IDPi == pi_id).first()
-
-def get_all_pis(db: Session):
-    return db.query(models.Pi).all()
-
-# === CRUD cho Bệnh nhân ===
 def get_benh_nhan_by_ma(db: Session, ma_benh_nhan: str):
     return db.query(models.BenhNhan).filter(models.BenhNhan.MaBenhNhan == ma_benh_nhan).first()
 
@@ -55,28 +52,19 @@ def get_patient_with_vitals(db: Session, ma_benh_nhan: str):
         })
     return schemas.PatientVitalsResponse(**response_data)
 
-# === CRUD cho đồng bộ ===
 def sync_vitals(db: Session, data: schemas.VitalSync):
     db_patient = get_benh_nhan_by_ma(db, ma_benh_nhan=data.ma_benh_nhan)
     
     if not db_patient:
-        # Nếu chưa có bệnh nhân, tạo mới với thông tin cơ bản
-        db_pi = get_pi_by_id(db, pi_id=data.id_pi)
-        if not db_pi:
-            # Nên tạo Pi trước khi đồng bộ, nhưng đây là phương án dự phòng
-            return None # Hoặc raise exception
-
         new_patient = models.BenhNhan(
             MaBenhNhan=data.ma_benh_nhan,
             HoVaTen=f"Bệnh nhân {data.ma_benh_nhan}",
             IDPi=data.id_pi,
-            NamSinh=2000 # Năm sinh mặc định
+            NamSinh=2000
         )
         db.add(new_patient)
         db.commit()
-        print(f"Da tao moi benh nhan {data.ma_benh_nhan} tu dong.")
 
-    # Thêm bản ghi chỉ số mới
     db_chiso = models.ChiSo(
         MaBenhNhan=data.ma_benh_nhan,
         NhietDo=data.nhietdo,
