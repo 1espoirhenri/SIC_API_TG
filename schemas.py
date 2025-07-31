@@ -1,4 +1,3 @@
-# schemas.py
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -25,7 +24,7 @@ class BenhNhanBase(BaseModel):
 class BenhNhan(BenhNhanBase):
     class Config:
         from_attributes = True
-        
+
 class BenhNhanUpdate(BaseModel):
     HoVaTen: str
 
