@@ -8,6 +8,15 @@ from database import engine, get_db
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Central Directory API")
+
+@app.post("/api/vitals/sync", tags=["Synchronization"])
+def sync_vitals_from_pi(data: schemas.VitalSync, db: Session = Depends(get_db)):
+    """
+    Endpoint để nhận dữ liệu từ Raspberry Pi và lưu vào DB trung gian.
+    """
+    crud.sync_vitals(db=db, data=data)
+    return {"status": "success", "message": f"Data for {data.ma_benh_nhan} synchronized."}
+
 # === API cho Thiết bị Pi ===
 
 @app.post("/pis/", response_model=schemas.Pi, tags=["Thiết bị Pi"])
