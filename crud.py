@@ -20,3 +20,11 @@ def get_patients_by_pi(db: Session, id_pi: str):
 def get_patient_details_for_lookup(db: Session, ma_benh_nhan: str):
     # Dùng JOIN để lấy thông tin bệnh nhân và cả thông tin Pi (chứa DDNS)
     return db.query(models.DanhBaBenhNhan).filter(models.DanhBaBenhNhan.MaBenhNhan == ma_benh_nhan).first()
+
+# === CRUD cho đồng bộ ===
+def sync_vitals(db: Session, data: schemas.VitalSync):
+    # Hàm này cần được bạn định nghĩa logic cụ thể
+    # Ví dụ: kiểm tra và tạo mới bệnh nhân, sau đó thêm chỉ số
+    print(f"Received data to sync: {data.model_dump_json()}")
+    # Thêm logic ghi vào DB ở đây
+    pass
