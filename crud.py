@@ -2,6 +2,13 @@
 from sqlalchemy.orm import Session
 import models, schemas
 
+def create_pi(db: Session, pi: schemas.PiCreate):
+    db_pi = models.Pi(**pi.model_dump())
+    db.add(db_pi)
+    db.commit()
+    db.refresh(db_pi)
+    return db_pi
+
 # === CRUD cho Pi ===
 def get_pi_by_id(db: Session, pi_id: str):
     return db.query(models.Pi).filter(models.Pi.IDPi == pi_id).first()
