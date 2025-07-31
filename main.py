@@ -1,52 +1,47 @@
 # main.py
-from typing import List
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-
-import crud, models, schemas
+from typing import List
+import models, crud, schemas
 from database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Central Directory API")
+app = FastAPI(title="SIC Central API")
 
-# === ENDPOINT ĐỒNG BỘ TỪ PI --- BỔ SUNG LẠI --- ===
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Central Health Monitoring API"}
+
+@app.get("/pis/", response_model=List[schemas.Pi], tags=["Nurse App"])
+def read_all_pis(db: Session = Depends(get_db)):
+    return crud.get_all_pis(db)
+
+@app.get("/pis/{id_pi}/patients/", response_model=List[schemas.BenhNhan], tags=["Nurse App"])
+def read_patients_from_pi(id_pi: str, db: Session = Depends(get_db)):
+    return crud.get_patients_by_pi(db, pi_id=id_pi)
+
+@app.get("/patients/all", response_model=List[schemas.BenhNhan], tags=["Nurse App"])
+def read_all_patients(db: Session = Depends(get_db)):
+    return crud.get_all_patients(db)
+
+@app.get("/lookup/patient/{ma_benh_nhan}", response_model=schemas.PatientVitalsResponse, tags=["Nurse App"])
+def lookup_patient_vitals(ma_benh_nhan: str, db: Session = Depends(get_db)):
+    patient_data = crud.get_patient_with_vitals(db, ma_benh_nhan=ma_benh_nhan)
+    if patient_data is None:
+        raise HTTPException(status_code=404, detail="Không tìm thấy bệnh nhân trong danh bạ trung gian")
+    return patient_data
+
+@app.put("/patients/{ma_benh_nhan}/rename", response_model=schemas.BenhNhan, tags=["Nurse App"])
+def rename_patient(ma_benh_nhan: str, data: schemas.BenhNhanUpdate, db: Session = Depends(get_db)):
+    updated_patient = crud.update_patient_name(db, ma_benh_nhan=ma_benh_nhan, new_name=data.HoVaTen)
+    if updated_patient is None:
+        raise HTTPException(status_code=404, detail="Không tìm thấy bệnh nhân để đổi tên")
+    return updated_patient
+
 @app.post("/api/vitals/sync", tags=["Synchronization"])
 def sync_vitals_from_pi(data: schemas.VitalSync, db: Session = Depends(get_db)):
-    """
-    Endpoint để nhận dữ liệu từ Raspberry Pi và lưu vào DB trung gian.
-    """
-    return crud.sync_vitals(db=db, data=data)
-
-# === API cho Thiết bị Pi ===
-@app.post("/pis/", response_model=schemas.Pi, tags=["Thiết bị Pi"])
-def create_new_pi(pi: schemas.PiCreate, db: Session = Depends(get_db)):
-    return crud.create_pi(db=db, pi=pi)
-
-@app.get("/pis/", response_model=List[schemas.Pi], tags=["Thiết bị Pi"])
-def read_all_pis(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_all_pis(db, skip=skip, limit=limit)
-
-# === API cho Danh bạ Bệnh nhân ===
-@app.get("/pis/{id_pi}/patients/", response_model=List[schemas.BenhNhan], tags=["Danh bạ Bệnh nhân"])
-def read_patients_from_pi(id_pi: str, db: Session = Depends(get_db)):
-    return crud.get_patients_by_pi(db, id_pi=id_pi)
-
-@app.get("/lookup/patient/{ma_benh_nhan}", response_model=schemas.PatientLookupResult, tags=["Danh bạ Bệnh nhân"])
-def lookup_patient_address(ma_benh_nhan: str, db: Session = Depends(get_db)):
-    patient_details = crud.get_patient_details_for_lookup(db, ma_benh_nhan=ma_benh_nhan)
-    if not patient_details:
-        raise HTTPException(status_code=404, detail="Không tìm thấy bệnh nhân trong danh bạ trung gian")
-    
-    # Quan trọng: Cần đảm bảo mối quan hệ 'pi' đã được load
-    if not patient_details.pi:
-         raise HTTPException(status_code=500, detail="Lỗi dữ liệu: Bệnh nhân không được liên kết với Pi nào.")
-
-    return schemas.PatientLookupResult(
-        MaBenhNhan=patient_details.MaBenhNhan,
-        HoVaTen=patient_details.HoVaTen,
-        NamSinh=patient_details.NamSinh,
-        IDPi=patient_details.IDPi,
-        DDNS=patient_details.pi.DDNS,
-        NguoiSoHuu=patient_details.pi.NguoiSoHuu
-    )
+    result = crud.sync_vitals(db=db, data=data)
+    if result is None:
+        raise HTTPException(status_code=400, detail=f"Pi voi ID {data.id_pi} khong ton tai.")
+    return {"status": "success", "message": f"Data for {data.ma_benh_nhan} synchronized."}
