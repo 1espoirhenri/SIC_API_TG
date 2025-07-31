@@ -11,7 +11,7 @@ def create_pi(db: Session, pi: schemas.PiCreate):
     db_pi = models.Pi(**pi.model_dump())
     db.add(db_pi)
     db.commit()
-    db.refresh(db_pi)
+    db.refresh(db_pi) # This line is crucial
     return db_pi
 
 def get_benh_nhan_by_ma(db: Session, ma_benh_nhan: str):
