@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -49,5 +50,5 @@ def rename_patient(ma_benh_nhan: str, data: schemas.BenhNhanUpdate, db: Session 
 def sync_vitals_from_pi(data: schemas.VitalSync, db: Session = Depends(get_db)):
     result = crud.sync_vitals(db=db, data=data)
     if result is None:
-        raise HTTPException(status_code=400, detail=f"Pi ID {data.id_pi} không tồn tại.")
+        raise HTTPException(status_code=400, detail=f"Pi voi ID {data.id_pi} khong ton tai.")
     return {"status": "success", "message": f"Data for {data.ma_benh_nhan} synchronized."}
