@@ -13,6 +13,12 @@ app = FastAPI(title="SIC Central API")
 def read_root():
     return {"message": "Welcome to the Central Health Monitoring API"}
 
+@app.post("/pis/", response_model=schemas.Pi, tags=["Nurse App"])
+def create_new_pi(pi: schemas.PiCreate, db: Session = Depends(get_db)):
+    """Tạo một thiết bị Pi mới trong danh bạ trung gian."""
+    # Thêm logic kiểm tra xem IDPi đã tồn tại chưa nếu cần
+    return crud.create_pi(db=db, pi=pi)
+
 @app.get("/pis/", response_model=List[schemas.Pi], tags=["Nurse App"])
 def read_all_pis(db: Session = Depends(get_db)):
     return crud.get_all_pis(db)
