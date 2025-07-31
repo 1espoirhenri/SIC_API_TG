@@ -1,3 +1,4 @@
+# schemas.py
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -11,7 +12,7 @@ class PiCreate(PiBase):
     pass
 
 class Pi(PiBase):
-    ID: int
+    ID: int # Giữ nguyên vì ID không được null
     class Config:
         from_attributes = True
 
@@ -24,7 +25,7 @@ class BenhNhanBase(BaseModel):
 class BenhNhan(BenhNhanBase):
     class Config:
         from_attributes = True
-
+        
 class BenhNhanUpdate(BaseModel):
     HoVaTen: str
 
